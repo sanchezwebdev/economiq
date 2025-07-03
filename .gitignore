@@ -1,0 +1,9 @@
+db_custom.sql
+db.sql
+venv
+.env
+ __pycache__
+ db_custom.sql
+ db.sql
+ portfolio-description.md
+ scratch.md

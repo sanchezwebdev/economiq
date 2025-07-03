@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}EconomIQ{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-latest.min.js" defer></script>
+   
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    .main-container {
+      display: flex;
+      flex: 1;
+    }
+    
+    nav.sidebar {
+      width: 250px;
+      background: linear-gradient(to bottom, #1b263b, #778da9);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      min-height: 1300px;
+      overflow-y: auto;
+      z-index: 1000;
+      min-height: 100%;
+    }
+    
+    nav.sidebar .app-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+      text-align: center;
+      letter-spacing: 1px;
+      border-bottom: 2px solid #e0e1dd;
+      padding-bottom: 0.5rem;
+    }
+    
+    nav.sidebar ul {
+      list-style: none;
+      padding-left: 0;
+      flex-grow: 1;
+    }
+    
+    nav.sidebar ul li {
+      margin-bottom: 1rem;
+    }
+    
+    nav.sidebar ul li a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      transition: background-color 0.2s ease;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+    }
+    
+    nav.sidebar ul li a:hover,
+    nav.sidebar ul li a.active {
+      background-color: #495057;
+    }
+    
+    main.content {
+      flex-grow: 1;
+      padding: 2rem;
+      background-color: #f8f9fa;
+      margin-left: 250px;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+  }
+
+.mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to right, #1b263b, #415a77);
+  color: white;
+  padding: 0.75rem 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 60px;
+  z-index: 1001;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.hamburger-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.6rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
+.mobile-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: white;
+}
+
+    @media (max-width: 768px) {
+      .mobile-header {
+        display: flex;
+        align-items: center;
+      }
+      
+      nav.sidebar {
+        transform: translateX(-100%);
+        top: 60px;
+        z-index: 1000;
+      }
+      
+      nav.sidebar.open {
+        transform: translateX(0);
+      }
+      
+      main.content {
+        margin-left: 0;
+        margin-top: 60px; 
+        padding: 1rem;
+        overflow-x: auto;
+      }
+      
+      .sidebar-overlay.show {
+        display: block;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      nav.sidebar {
+        width: 280px;
+      }
+      
+      main.content {
+        padding: 0.5rem;
+      }
+      
+      .mobile-title {
+        font-size: 1.2rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+  nav.sidebar .app-title {
+    display: none;
+  }
+}
+
+  </style>
+</head>
+<body>
+    <div class="mobile-header">
+      <button class="hamburger-btn" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+      </button>
+      <a class="mobile-title" href="{% url 'home' %}">EconomIQ</a>
+    </div>
+
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+  
+  <div class="main-container">
+    <nav class="sidebar" id="sidebar">
+      <div class="app-title">
+        <a href="{% url 'home' %}" style="color: white; text-decoration: none;">EconomIQ</a>
+      </div>   
+      <ul>
+        <li><a href="{% url 'home' %}"><i class="bi bi-grid"></i>Dashboard</a></li>
+        <li><a href="{% url 'market_analysis' %}"><i class="bi bi-bar-chart"></i>Market Analysis</a></li>
+        <li><a href="{% url 'macro_composition' %}"><i class="bi bi-diagram-3"></i>Macro Composition</a></li>
+        <li><a href="{% url 'investment_signals' %}"><i class="bi bi-speedometer2"></i>Investment Signals</a></li>        
+      </ul>
+    </nav>
+    
+    <main class="content">
+      {% block content %}
+      {% endblock %}
+    </main>
+  </div>
+  
+  {% block footer %}
+    {% include 'components/footer.html' %}
+  {% endblock %}
+  
+<div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header">
+        <h5 class="modal-title" id="aboutModalLabel">About EconomIQ</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        EconomIQ is an interactive data analytics dashboard built with Django and PostgreSQL. <br/><br/> It showcases economic trends using realistic, AI-generated data modeled after real indicators like GDP growth, inflation, and market indexes. <br/><br/>Users can visualize trends across multiple dimensions with dynamic charts—no page refresh required. <br/><br/>Designed to demonstrate skills in data analysis, visualization, and backend development, EconomIQ highlights real-world use cases in economic monitoring and decision-making.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header">
+        <h5 class="modal-title" id="contactModalLabel">Contact</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Email us at <a href="mailto:contact@gerardosanchez.com" class="text-info">contact@gerardosanchez.com</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header">
+        <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        We respect your privacy. No personal data is stored or tracked beyond basic analytics.
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  }
+
+  function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  }
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) closeSidebar();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
+  });
+</script>
+
+</body>
+</html>

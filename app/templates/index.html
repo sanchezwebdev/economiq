@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  EconomIQ Dashboard
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<style>
+  .top-section {
+  display: flex;
+  flex-direction: row;
+  margin-top: 30px;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  width: 100%;  
+}
+
+.full-width-chart {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;  
+}
+
+.right-panel {  
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 100%;
+}
+
+#combined-img, #radar-img {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  min-height: 100%;
+}
+#radar-img{
+  min-height: 100%;   
+}
+#combined-img{
+  min-width: 750px
+}
+.selectors {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+#checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.metric-checkbox {
+  transform: scale(1.4);
+  margin-right: 0.25rem;
+  cursor: pointer;
+}
+
+.timeframe select {
+  padding: 0.4rem 0.6rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+#limit-message,
+#min-limit-message {
+  position: absolute;
+  background-color: #d9534f;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: bold;
+  margin-top: 0.75rem;
+  display: none;
+  max-width: 300px;
+}
+
+.radar-card {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.rcard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.rcard-header select {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.table-panel {
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  width: 100%;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.table-panel table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-panel th,
+.table-panel td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.table-panel th {
+  background-color: #f1f1f1;
+  text-transform: capitalize;
+}
+
+.table-panel tr:hover {
+  background-color: #e3f2fd;
+}
+
+</style>
+<h1>📈 EconomIQ</h1>
+<section class="top-section">
+  <div class="full-width-chart">
+    <div id="combined-chart-container">
+      <img id="combined-img" src="data:image/png;base64,{{ combined_chart_img }}" alt="Combined Chart">
+    </div>
+    <div class="selectors">
+      <div id="checkboxes">
+        {% for label in metrics %}
+        <label>
+          <input type="checkbox" class="metric-checkbox" value="{{ label }}"
+          {% if label in default_metrics %}checked{% endif %}>
+          {{ label }}
+        </label>
+        {% endfor %}
+      </div>
+      <div class="timeframe">
+        <label for="timeframe-select">Timeframe:</label>
+        <select id="timeframe-select" name="timeframe">
+          <option value="month" selected>Month</option>
+          <option value="quarter">Quarter</option>
+          <option value="year">Year</option>
+        </select>
+      </div>
+    </div>
+    
+    <div id="limit-message">Only 2 metrics can be selected at a time.</div>
+    <div id="min-limit-message">You must select at least one metric.</div>
+  </div>
+  
+  <div class="right-panel">
+    <div class="radar-panel">
+      <div class="radar-card">
+        <div class="rcard-header">
+          <h4>Yearly Economic Shifts</h4>
+          <select id="year-select">
+            {% for year in years %}
+            <option value="{{ year }}" {% if year == default_year %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <img id="radar-img" src="data:image/png;base64,{{ radar_img }}" alt="Radar Chart">
+      </div>
+    </div>
+  </div>
+</section>
+    <div class="table-panel">
+      <table>
+        <thead>
+          <tr>
+            {% for col in summary_headers %}
+            <th>{{ col|title }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in summary_rows %}
+          <tr>
+            {% for cell in row %}
+            <td>{{ cell }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+<script>
+const limitMessage = document.getElementById('limit-message');
+const minLimitMessage = document.getElementById('min-limit-message');
+let timeoutId = null;
+
+// Handle changes to metric checkboxes and timeframe selector
+document.querySelectorAll('.metric-checkbox, #timeframe-select').forEach(el => {
+  el.addEventListener('change', (event) => {
+    const checkedBoxes = Array.from(document.querySelectorAll('.metric-checkbox:checked'));
+
+    if (checkedBoxes.length > 2) {
+      event.target.checked = false;
+      limitMessage.style.display = 'block';
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => limitMessage.style.display = 'none', 3000);
+      return;
+    }
+
+    if (checkedBoxes.length === 0) {
+      event.target.checked = true;
+      minLimitMessage.style.display = 'block';
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => minLimitMessage.style.display = 'none', 3000);
+      return;
+    }
+
+    const selectedMetrics = checkedBoxes.map(cb => cb.value);
+    const timeframe = document.getElementById('timeframe-select').value;
+
+    // Request updated combined chart based on current selections
+    fetch('/get-combined-chart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ metrics: selectedMetrics, timeframe: timeframe })
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Update combined chart image
+      document.getElementById('combined-img').src = 'data:image/png;base64,' + data.chart;
+    });
+  });
+});
+// Handle changes to radar chart year selector
+document.getElementById('year-select').addEventListener('change', function () {
+  fetch(`/get-radar-data?year=${this.value}`)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('radar-img').src = 'data:image/png;base64,' + data.img;
+    });
+});
+</script>
+
+{% endblock %}

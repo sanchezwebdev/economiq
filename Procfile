@@ -1,0 +1,1 @@
+web: gunicorn trendSight.wsgi:application --log-file -

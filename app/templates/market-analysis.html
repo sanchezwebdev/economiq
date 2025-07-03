@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  Market Analysis
+{% endblock %}
+
+{% block content %}
+
+<style>
+  h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  form#indexForm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+    background: #f9f9f9;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  }
+
+  form#indexForm label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+
+  form#indexForm select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    font-size: 1rem;
+  }
+
+  .chart-container {
+    width: 100%;  
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .chart-container img {
+    width: 80%;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
+  }
+</style>
+
+<h1>Market Analysis</h1>
+
+<form method="get" id="indexForm">
+  <label for="index">Select Stock Index:</label>
+  <select name="index" id="index">
+    {% for index in indexes %}
+      <option value="{{ index }}" {% if index == selected_index %}selected{% endif %}>{{ index }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="overlay">Overlay Analysis:</label>
+  <select name="overlay" id="overlay">
+    <option value="none" {% if overlay == "none" %}selected{% endif %}>None</option>
+    <option value="regression" {% if overlay == "regression" %}selected{% endif %}>Linear Regression</option>
+    <option value="sma" {% if overlay == "sma" %}selected{% endif %}>Simple Moving Average (SMA)</option>
+    <option value="ema" {% if overlay == "ema" %}selected{% endif %}>Exponential Moving Average (EMA)</option>
+    <option value="vwap" {% if overlay == "vwap" %}selected{% endif %}>VWAP</option>
+  </select>
+</form>
+
+<div class ="chart-container" id="chartContainer">
+  {% if chart %}
+    <img src="data:image/png;base64,{{ chart }}" alt="Candlestick Chart">
+  {% endif %}
+</div>
+
+<script>
+  // ----- Update chart via AJAX -----
+  function updateChart() {
+    const index = document.getElementById('index').value;
+    const overlay = document.getElementById('overlay').value;
+
+    const params = new URLSearchParams({
+      index: index,
+      overlay: overlay,
+    });
+
+    fetch(`?${params.toString()}`, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      const chartContainer = document.getElementById('chartContainer');
+      chartContainer.innerHTML = `<img src="data:image/png;base64,${data.chart}" alt="Candlestick Chart">`;
+    });
+  }
+
+  // ----- Event listeners -----
+  document.getElementById('index').addEventListener('change', updateChart);
+  document.getElementById('overlay').addEventListener('change', updateChart);
+</script>
+
+
+
+{% endblock %}
