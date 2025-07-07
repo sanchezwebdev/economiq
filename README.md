@@ -10,6 +10,9 @@
 - Investment signals and macroeconomic radar charts
 - Dynamic chart updates without page refresh using JavaScript
 - Responsive layout with Bootstrap + custom CSS
+  <br />
+  
+  <img src="https://res.cloudinary.com/dyivstfjt/image/upload/v1751635364/pic_ei1_xyrnxk.png" alt="Main Dashboard" style="margin-top: 20px; max-width: 100%; height: auto;" />
 
 ## 🛠️ Tech Stack
 
