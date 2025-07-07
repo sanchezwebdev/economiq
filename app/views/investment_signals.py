@@ -10,7 +10,7 @@ import numpy as np
 
 matplotlib.use("Agg")
 
-# ----- Field and color definitions -----
+#  Field and color definitions 
 FIELDS = {
     'USD/EUR': 'usd_eur_rate',
     'USD/JPY': 'usd_jpy_rate',
@@ -26,11 +26,11 @@ COLORS = {
     'highlight': '#ffcf33',
 }
 
-# ----- Normalize series helper -----
+#  Normalize series helper 
 def normalize(series):
     return (series - series.min()) / (series.max() - series.min())
 
-# ----- Plot stacked ICI chart -----
+#  Plot stacked ICI chart 
 def plot_investment_climate_index(df):
     fig, ax1 = plt.subplots(figsize=(10, 4))
     df['Date'] = pd.to_datetime(df['Date'])
@@ -72,7 +72,7 @@ def plot_investment_climate_index(df):
     buffer.close()
     return chart_data
 
-# ----- Investment signals main view -----
+#  Investment signals main view 
 def investment_signals(request):
     field1_label = request.GET.get('field1', 'USD/EUR')
     field2_label = request.GET.get('field2', 'Gold Price')
@@ -153,7 +153,7 @@ def investment_signals(request):
             "selected_field2": field2_label
         })
 
-# ----- Plot business health score heatmap -----
+#  Plot business health score heatmap 
 def plot_health_score_heatmap(df):
     df["Date"] = pd.to_datetime(df["Date"])
     df["Business Health Score"] = df["mna_deals_volume"] / df["bankruptcy_rate"]

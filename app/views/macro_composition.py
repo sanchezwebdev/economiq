@@ -7,11 +7,11 @@ from django.db import connection
 import pandas as pd
 from django.http import JsonResponse
 
-# ----- Macro composition main view -----
+#  Macro composition main view 
 def macro_composition(request):
     agg = request.GET.get('agg', 'year')
 
-    # ----- Fetch data from DB -----
+    #  Fetch data from DB 
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT 
@@ -35,7 +35,7 @@ def macro_composition(request):
     df = pd.DataFrame(rows, columns=columns)
     df['Date'] = pd.to_datetime(df['Date'])
 
-    # ----- Add additional indicators -----
+    #  Add additional indicators 
     np.random.seed(0)
     n = len(df)
     df['Corporate Profits (Billion USD)'] = np.random.uniform(100, 500, size=n)
@@ -43,7 +43,7 @@ def macro_composition(request):
     df['Government Debt (Billion USD)'] = np.random.uniform(200, 600, size=n)
     df['Retail Sales (Billion USD)'] = np.random.uniform(150, 400, size=n)
 
-    # ----- Aggregate by period -----
+    #  Aggregate by period 
     if agg == 'quarter':
         df['Period'] = df['Date'].dt.to_period('Q').dt.start_time
     else:
@@ -60,7 +60,7 @@ def macro_composition(request):
         'Retail Sales (Billion USD)': 'sum',
     }).reset_index()
 
-    # ----- Normalize selected columns -----
+    #  Normalize selected columns 
     cols_to_normalize = [
         'gdp_growth_percent',
         'inflation_rate_percent',
@@ -77,7 +77,7 @@ def macro_composition(request):
     row_sums[row_sums == 0] = 1
     normalized_vals = vals / row_sums
 
-    # ----- Plot bar chart -----
+    #  Plot bar chart 
     labels = grouped['Period'].dt.strftime('%Y-%m-%d')
     components = cols_to_normalize
     colors = ['#79aea3', '#ebebeb', '#deb72b', '#f3663f']
@@ -102,14 +102,14 @@ def macro_composition(request):
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
 
-    # ----- Save and encode chart -----
+    #  Save and encode chart 
     buf = io.BytesIO()
     plt.savefig(buf, format='png', dpi=200, facecolor=fig.get_facecolor())
     plt.close(fig)
     buf.seek(0)
     image_base64 = base64.b64encode(buf.read()).decode('utf-8')
 
-    # ----- Return JSON or render template -----
+    #  Return JSON or render template 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'chart': image_base64})
 

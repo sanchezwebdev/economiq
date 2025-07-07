@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import make_interp_spline
 
-# ----- Metric label mappings -----
+#  Metric label mappings 
 metrics = {
     'GDP Growth Rate': 'GDP Growth (%)',
     'CPI (Inflation)': 'Inflation Rate (%)',
@@ -21,7 +21,7 @@ metrics = {
     'Consumer Confidence': 'Consumer Confidence Index'
 }
 
-# ----- Render combined line chart -----
+#  Render combined line chart 
 def render_combined_chart(selected_metrics, timeframe='month'):
     if not selected_metrics:
         return ''
@@ -105,7 +105,7 @@ def render_combined_chart(selected_metrics, timeframe='month'):
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
 
-# ----- Render small individual chart -----
+#  Render small individual chart 
 def render_mini_chart(metric_label, column_name):
     with connection.cursor() as cursor:
         cursor.execute(f"""
@@ -132,7 +132,7 @@ def render_mini_chart(metric_label, column_name):
         return base64.b64encode(buf.getvalue()).decode('utf-8')
 
 
-# ----- Calculate year-over-year percent changes -----
+#  Calculate year-over-year percent changes 
 def calculate_percent_changes(year):
     values = []
     allowed_columns = set(metrics.values())
@@ -184,7 +184,7 @@ def calculate_percent_changes(year):
     return values
 
 
-# ----- Render radar chart -----
+#  Render radar chart 
 def render_radar_chart(values, labels, year):
     num_vars = len(values)
     angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
@@ -207,7 +207,7 @@ def render_radar_chart(values, labels, year):
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
 
-# ----- Home view -----
+#  Home view 
 def home(request):
     charts = []
     for label, column in metrics.items():
@@ -261,7 +261,7 @@ def home(request):
     })
 
 
-# ----- API view: radar data -----
+#  API view: radar data 
 def get_radar_data(request):
     year = int(request.GET.get('year'))
     values = calculate_percent_changes(year)
@@ -269,7 +269,7 @@ def get_radar_data(request):
     return JsonResponse({'img': radar_img})
 
 
-# ----- API view: combined chart -----
+#  API view: combined chart 
 @csrf_exempt
 def combined_chart_view(request):
     if request.method == 'POST':
@@ -280,7 +280,7 @@ def combined_chart_view(request):
         return JsonResponse({'chart': chart_img})
 
 
-# ----- Legacy update endpoint -----
+#  Legacy update endpoint 
 def update_combined_chart(request):
     metrics = request.GET.get('metrics', '')
     metric_list = metrics.split(',') if metrics else []

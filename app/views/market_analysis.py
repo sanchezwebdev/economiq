@@ -15,18 +15,18 @@ from django.http import JsonResponse
 matplotlib.use('Agg')
 style.use('ggplot')
 
-# ----- Table mapping -----
+#  Table mapping 
 TABLE_MAP = {
     'Dow Jones': 'dow_jones',
     'S&P 500': 'sp_500',
     'Nasdaq': 'nasdaq',
 }
 
-# ----- Fetch available stock indexes -----
+#  Fetch available stock indexes 
 def fetch_stock_indexes():
     return list(TABLE_MAP.keys())
 
-# ----- Fetch OHLC data -----
+#  Fetch OHLC data 
 def fetch_ohlc_data(stock_index, method):
     table = TABLE_MAP.get(stock_index)
     if not table:
@@ -80,7 +80,7 @@ def fetch_ohlc_data(stock_index, method):
         rows = cursor.fetchall()
         return pd.DataFrame(rows, columns=['Date', 'Open', 'High', 'Low', 'Close', 'Volume'])
 
-# ----- Compute overlays -----
+#  Compute overlays 
 def compute_linear_regression(df):
     X = mdates.date2num(df['Date']).reshape(-1, 1)
     y = df['Close'].values
@@ -104,7 +104,7 @@ def compute_vwap(df):
     vwap = (typical_price * volume).cumsum() / volume.cumsum()
     return vwap
 
-# ----- Generate candlestick chart -----
+#  Generate candlestick chart 
 def generate_candlestick_chart(df, overlay='none'):
     df['Date'] = pd.to_datetime(df['Date'])
     df['Date_Num'] = mdates.date2num(df['Date'])
@@ -165,7 +165,7 @@ def generate_candlestick_chart(df, overlay='none'):
 
     return base64.b64encode(buffer.read()).decode('utf-8')
 
-# ----- Market analysis main view -----
+#  Market analysis main view 
 def market_analysis(request):
     selected_index = request.GET.get('index', 'Dow Jones')
     method = request.GET.get('method', 'absolute')
